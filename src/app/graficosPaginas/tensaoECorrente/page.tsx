@@ -1,5 +1,5 @@
 import { Suspense} from "react";
-import {GraficoTensao, GraficoCorrente} from "../../componentes/graficosGerais/graficosEmTempoReal";
+import {GraficoTensaoXCorrente} from "../../componentes/graficosGerais/graficosEmTempoReal";
 import {DadosUltimaMedicao} from "../../componentes/tabbar";
 
 
@@ -13,8 +13,7 @@ export default function Home() {
           <DadosUltimaMedicao/>
           <Suspense fallback="carregando...">
             
-            <GraficoCorrente/>
-            <GraficoTensao/>
+            <GraficoTensaoXCorrente/>
           </Suspense>
         </div>
       </main>
