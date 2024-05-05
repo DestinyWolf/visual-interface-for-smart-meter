@@ -4,18 +4,18 @@ import { useState } from "react";
 import {returnDataFromAPI} from "../../service/fetchFromAPI";
 
 interface Data{
-    _id?:string;
-    dia?:string;
-    mes?:string;
-    ano?:string;
-    tempo?:string;
-    data?:string;
-    hora?:string;
-    tempA?:string;
-    tempB?:string;
-    tensao?:string;
-    corrente?:string;
-    potencia?:string;
+    _id:string;
+    dia:string;
+    mes:string;
+    ano:string;
+    tempo:string;
+    data:string;
+    hora:string;
+    tempA:string;
+    tempB:string;
+    tensao:string;
+    corrente:string;
+    potencia:string;
     energia:string
 }
 
@@ -34,8 +34,8 @@ export async function GraficoTensao(props:GraficoProps) {
 
     setDados((await returnDataFromAPI(urlData, ((props.hasRefresh) ? props.hasRefresh : false))))
 
-    var lastHourUpdate = dados[dados.length-1]?.hora ? dados[dados.length-1]?.hora : null;
-    var lastDayUpdate = dados[dados.length-1]?.data ? dados[dados.length-1]?.data : null;
+    var lastMonthUpdate = dados[dados.length-1]?.hora ? dados[dados.length-1]?.hora : null;
+    //var lastDayUpdate = dados[dados.length-1]?.data ? dados[dados.length-1]?.data : null;
     let indexToArrData = 0;
 
     const title = [{type:"date", label:"Hour"}, "Amper"];
@@ -44,11 +44,11 @@ export async function GraficoTensao(props:GraficoProps) {
     indexToArrData = 1;
     
 
-    if (lastHourUpdate) {
+    if (lastMonthUpdate) {
         let lastHour = null;
 
         for(let i = 0; i<dados.length; i++) {
-            if (dados[i]?.data == lastDayUpdate ) {
+            if (dados[i]?.mes == lastDayUpdate ) {
                 if(!lastHour){
                     lastHour = dados[i]?.hora
                     data[indexToArrData] = [
@@ -107,7 +107,7 @@ export async function GraficoTemperaturaPlaca(props:GraficoProps) {
 
     setDados((await returnDataFromAPI(urlData, ((props.hasRefresh) ? props.hasRefresh : false))))
 
-    var lastHourUpdate = dados[dados.length-1]?.hora ? dados[dados.length-1]?.hora : null;
+    var lastMonthUpdate = dados[dados.length-1]?.hora ? dados[dados.length-1]?.hora : null;
     var lastDayUpdate = dados[dados.length-1]?.data ? dados[dados.length-1]?.data : null;
     let indexToArrData = 0;
 
@@ -117,7 +117,7 @@ export async function GraficoTemperaturaPlaca(props:GraficoProps) {
     indexToArrData = 1;
     
 
-    if (lastHourUpdate) {
+    if (lastMonthUpdate) {
         let lastHour = null;
 
         for(let i = 0; i<dados.length; i++) {
@@ -180,7 +180,7 @@ export async function GraficoTemperaturaAmbiente(props:GraficoProps) {
 
     setDados((await returnDataFromAPI(urlData, ((props.hasRefresh) ? props.hasRefresh : false))))
 
-    var lastHourUpdate = dados[dados.length-1]?.hora ? dados[dados.length-1]?.hora : null;
+    var lastMonthUpdate = dados[dados.length-1]?.hora ? dados[dados.length-1]?.hora : null;
     var lastDayUpdate = dados[dados.length-1]?.data ? dados[dados.length-1]?.data : null;
     let indexToArrData = 0;
 
@@ -190,7 +190,7 @@ export async function GraficoTemperaturaAmbiente(props:GraficoProps) {
     indexToArrData = 1;
     
 
-    if (lastHourUpdate) {
+    if (lastMonthUpdate) {
         let lastHour = null;
 
         for(let i = 0; i<dados.length; i++) {
@@ -253,7 +253,7 @@ export async function GraficoPotencia(props:GraficoProps) {
 
     setDados((await returnDataFromAPI(urlData, ((prosp.hasRefresh) ? props.hasRefresh : false))))
 
-    var lastHourUpdate = dados[dados.length-1]?.hora ? dados[dados.length-1]?.hora : null;
+    var lastMonthUpdate = dados[dados.length-1]?.hora ? dados[dados.length-1]?.hora : null;
     var lastDayUpdate = dados[dados.length-1]?.data ? dados[dados.length-1]?.data : null;
     let indexToArrData = 0;
 
@@ -263,7 +263,7 @@ export async function GraficoPotencia(props:GraficoProps) {
     indexToArrData = 1;
     
 
-    if (lastHourUpdate) {
+    if (lastMonthUpdate) {
         let lastHour = null;
 
         for(let i = 0; i<dados.length; i++) {
@@ -327,7 +327,7 @@ export async function GraficoEnergiaGerada(props:GraficoProps) {
 
     setDados((await returnDataFromAPI(urlData, ((props.hasRefresh) ? props.hasRefresh : false))))
 
-    var lastHourUpdate = dados[dados.length-1]?.hora ? dados[dados.length-1]?.hora : null;
+    var lastMonthUpdate = dados[dados.length-1]?.hora ? dados[dados.length-1]?.hora : null;
     var lastDayUpdate = dados[dados.length-1]?.data ? dados[dados.length-1]?.data : null;
     let indexToArrData = 0;
 
@@ -337,7 +337,7 @@ export async function GraficoEnergiaGerada(props:GraficoProps) {
     indexToArrData = 1;
     
 
-    if (lastHourUpdate) {
+    if (lastMonthUpdate) {
         let lastHour = null;
 
         for(let i = 0; i<dados.length; i++) {
@@ -400,7 +400,7 @@ export async function GraficoCorrente(props:GraficoProps) {
 
     setDados((await returnDataFromAPI(urlData, ((props.hasRefresh) ? props.hasRefresh : false))))
 
-    var lastHourUpdate = dados[dados.length-1]?.hora ? dados[dados.length-1]?.hora : null;
+    var lastMonthUpdate = dados[dados.length-1]?.hora ? dados[dados.length-1]?.hora : null;
     var lastDayUpdate = dados[dados.length-1]?.data ? dados[dados.length-1]?.data : null;
     let indexToArrData = 0;
 
@@ -410,7 +410,7 @@ export async function GraficoCorrente(props:GraficoProps) {
     indexToArrData = 1;
     
 
-    if (lastHourUpdate) {
+    if (lastMonthUpdate) {
         let lastHour = null;
 
         for(let i = 0; i<dados.length; i++) {

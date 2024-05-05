@@ -13,7 +13,7 @@ export default function Home() {
         <div className=" flex-col border-2 border-black  justify-center items-center">
           <DadosUltimaMedicao/>
           <Suspense fallback="carregando...">
-            <GraficoCorrente/>
+            <GraficoCorrente />
           </Suspense>
         </div>
         

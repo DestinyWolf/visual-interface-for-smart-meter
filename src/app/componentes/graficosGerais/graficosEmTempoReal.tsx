@@ -1,8 +1,14 @@
 'use client'
-import {Chart} from "react-google-charts";
+import { ApexOptions } from "apexcharts";
+//import {Chart, GoogleChartWrapperChartType} from "react-google-charts";
 import { useState } from "react";
+import Chart from "react-apexcharts";
 
-//formato que os dados sao guardados no banco de dados
+
+//link for push data from API 
+const uri = "http://127.0.0.1:5000/data";
+
+//data components and your types
 interface DataObject{
     _id:string;
     dia:string;
@@ -19,21 +25,16 @@ interface DataObject{
     energia:string
 }
 
-
-const array:DataObject[] = []; //array global para armazenar as informações iniciais dos graficos
-//realiza um fetch geral na api
-export async function fetchFromApi() {
-    return  fetch("http://127.0.0.1:5000/data")
+async function fetchFromApi(url:string)  {
+    return  fetch(url)
             .then(res => { return res.json()})
             .then(data => {return data})
 }
+let previousData:any;
+let status:boolean = false
 
-let previousData: any = null;
-let status:boolean = true;
-
-//verifica se houve alguma atualizacao na api
 async function checkForUpdateAndFetchData() {
-    const currentData = await fetchFromApi();
+    const currentData = await fetchFromApi("http://127.0.0.1:5000/data");
 
     // Verificar se é a primeira vez que os dados são verificados
     if (!previousData) {
@@ -46,7 +47,7 @@ async function checkForUpdateAndFetchData() {
 
     if (isUpdated) {
         // Se os dados foram atualizados, fazer a solicitação à API
-        await fetchFromApi();
+        await fetchFromApi("http://127.0.0.1:5000/data");
         // Atualizar os dados anteriores
         previousData = currentData;
 
@@ -57,15 +58,53 @@ async function checkForUpdateAndFetchData() {
     } 
 }
 
-//realiza a chamada do metodo de verificao a cada um minuto
+
+
 setInterval(checkForUpdateAndFetchData, 60000);
 
-export async function GraficoEnergiaGerada() {
+async function getDataAPI(hasRefresh:boolean, uri:string) {
+    const [data, setData] = useState(array)
+    if (status || hasRefresh) {
+        try{
+            const response = await fetchFromApi(uri);
+            setData(Object.values(data));
+        }  catch (err) {
+            console.log(err);
+        }
+    }
+    return data;
+}
+
+
+const array:DataObject[] = []; //array global para armazenar as informações iniciais dos graficos
+
+
+//props of graphs
+interface GraficoProps{
+    hasRefresh?:boolean,
+}
+
+
+
+/**
+ * APARTIR DAQUI INICIA OS COMPONENTES DE GRAFICOS
+ */
+/**
+ * Graph component for interface, show currrent data for all power save
+ * @param props props for Graph component
+ * @returns React Component
+ */
+export async function GraficoEnergiaGerada(props:GraficoProps) {
 
     
+    //save data  after push API
     const [dados, setDados] = useState(array); 
-    const [type, setTypeView] = useState("LineChart");
+    
 
+    //set graph type
+    const [type, setTypeView] = useState("LineChart");
+    
+    //fetch in API 
     async function buscaDados() {
     
         try{
@@ -83,26 +122,32 @@ export async function GraficoEnergiaGerada() {
     if(status){
         status=false
         buscaDados()
-    }
+    } 
     if (dados.length == 0) {
-        buscaDados();
+        buscaDados()
     }
 
     var lastHourUpdate = dados[dados.length-1]?.hora ? dados[dados.length-1]?.hora : null;
     var lastDayUpdate = dados[dados.length-1]?.data ? dados[dados.length-1]?.data : null;
+
+    //var to save currrent position on array data
     let indexToArrData = 0;
 
+    //label for graph
     const title = [{type:"date", label:`DIA: ${lastDayUpdate}`}, "Kw/h"];
-    const data = []
 
-    data[indexToArrData] = title;
-    indexToArrData = 1;
+    //array for data graph
+    var data = []
 
+    //if has last hour update
     if (lastHourUpdate) {
         let sumValues = 0;
+
+        //set last hour to null and read de data label
         let lastHour = null;
 
         for(let i = 0; i<dados.length; i++) {
+            //if the date is the last day, insert this camp in Data array
             if (dados[i]?.data == lastDayUpdate ) {
                 if(!lastHour){
                     lastHour = dados[i]?.hora
@@ -111,24 +156,40 @@ export async function GraficoEnergiaGerada() {
                     if(dados[i]?.hora == lastHour){
                         sumValues += parseFloat(dados[i]?.energia)
                     } else {
-                        data[indexToArrData] = [new Date(
+                        let date = new Date(
                             parseInt(dados[i]?.ano),
-                            parseInt(dados[i]?.mes),
+                            parseInt(dados[i]?.mes)-1,
                             parseInt(dados[i]?.dia),
-                            parseInt(lastHour),
-                            
-                        ), sumValues]
+                            parseInt(dados[i]?.hora)-3,
+                            parseInt(dados[i]?.tempo.slice(3,5)))
+                        data[indexToArrData] = [date, sumValues]
+
+                        //update last hour to new hour and repet the process
                         lastHour = dados[i]?.hora
-                        indexToArrData += 1;
+                        indexToArrData++;
                         sumValues = parseFloat(dados[i]?.energia)
                     }
                 }
                 
             }
         }
-
-        
     }
+
+    const options:ApexOptions = {
+        chart: {
+            id: "basic-bar"
+        },
+        xaxis:{
+            type: "datetime"
+        }
+    }
+
+    const series:ApexAxisChartSeries = [
+        {
+            name: 'Kwh',
+            data: data
+        }
+    ]
 
     
     //exibe o grafico na tela
@@ -147,19 +208,22 @@ export async function GraficoEnergiaGerada() {
                 >
                     grafico de barras
                 </button>
-            <Chart
-                chartType={(type) ? type:"LineChart"}
-                data={data}
-                width="100%"
-                height="400px"
-                legendToggle
-            />
+                <div className="bg-white">
+                    <Chart
+                        type="area"
+                        options={options}
+                        series={series}
+                        width="100%"
+                        height="400px"
+        
+                    />
+                </div>
         </div>
         
     )
 }
 
-export async function GraficoTensao() {
+export async function GraficoTensao(props:GraficoProps) {
 
     
     const [dados, setDados] = useState(array); 
@@ -183,10 +247,9 @@ export async function GraficoTensao() {
         status=false
         buscaDados()
     } 
-    if (dados.length == 0){
+    if (dados.length == 0) {
         buscaDados()
     }
-
 
     var lastHourUpdate = dados[dados.length-1]?.hora ? dados[dados.length-1]?.hora : null;
     var lastDayUpdate = dados[dados.length-1]?.data ? dados[dados.length-1]?.data : null;
@@ -195,8 +258,6 @@ export async function GraficoTensao() {
 
     const title = [{type:"date", label:"Hour"}, "Volts"];
     const data = []
-    data[indexToArrData] = title;
-    indexToArrData = 1;
     
 
     if (lastHourUpdate) {
@@ -206,44 +267,52 @@ export async function GraficoTensao() {
             if (dados[i]?.data == lastDayUpdate ) {
                 if(!lastHour){
                     lastHour = dados[i]?.hora
-                    data[indexToArrData] = [
-                        new Date(
-                            parseInt(dados[i]?.ano),
-                            parseInt(dados[i]?.mes),
-                            parseInt(dados[i]?.dia),
-                            parseInt(dados[i]?.hora),
-                            )
-                        , parseFloat(dados[i]?.tensao)]
-                    indexToArrData += 1;
+                    let date = new Date(
+                        parseInt(dados[i]?.ano),
+                        parseInt(dados[i]?.mes)-1,
+                        parseInt(dados[i]?.dia),
+                        parseInt(dados[i]?.hora)-3,
+                        parseInt(dados[i]?.tempo.slice(3,5)))
+                    data[indexToArrData] = [date, parseFloat(dados[i]?.tensao)]
+                    indexToArrData++;
                 } else {
-                    if(dados[i]?.hora == lastHour){
-                        data[indexToArrData] = [new Date(
-                            parseInt(dados[i]?.ano),
-                            parseInt(dados[i]?.mes),
-                            parseInt(dados[i]?.dia),
-                            parseInt(dados[i]?.hora),
-                            parseInt(dados[i]?.tempo.slice(3,5)),
-                            ),parseFloat(dados[i]?.tensao)]
-                        indexToArrData += 1;
-                    } else {
+                    //verifica se houve uma troca de hora e atualiza o dado
+                    if(dados[i]?.hora != lastHour){
                         lastHour = dados[i]?.hora;
-                        data[indexToArrData] = [new Date(
-                            parseInt(dados[i]?.ano),
-                            parseInt(dados[i]?.mes),
-                            parseInt(dados[i]?.dia),
-                            parseInt(dados[i]?.hora),
-                            parseInt(dados[i]?.tempo.slice(3,5)),
-                            ), parseFloat(dados[i]?.tensao)]
-                        indexToArrData += 1;
                     }
+                    let date = new Date(
+                        parseInt(dados[i]?.ano),
+                        parseInt(dados[i]?.mes)-1,
+                        parseInt(dados[i]?.dia),
+                        parseInt(dados[i]?.hora)-3,
+                        parseInt(dados[i]?.tempo.slice(3,5)))
+                    data[indexToArrData] = [date, parseFloat(dados[i]?.tensao)]
+                    indexToArrData++;
+                    
                 }
                 
             }
         }
-
-        
     } 
 
+    const options:ApexOptions = {
+        chart: {
+            id: "area"
+        },
+        xaxis:{
+            type: "datetime"
+        },
+        dataLabels:{
+            enabled:false
+        }
+    }
+
+    const series:ApexAxisChartSeries = [
+        {
+            name: 'Volts',
+            data: data
+        }
+    ]
     
     //exibe o grafico na tela
     return (
@@ -261,24 +330,28 @@ export async function GraficoTensao() {
                 >
                     grafico de barras
                 </button>
-            <Chart
-                chartType={(type) ? type:"LineChart"}
-                data={data}
-                width="100%"
-                height="400px"
-                legendToggle
-            />
+                <div className="bg-white">
+                <Chart
+                    type="area"
+                    options={options}
+                    series={series}
+                    width="100%"
+                    height="400px"
+    
+                />
+                </div>
         </div>
         
     )
 
 }
 
-export async function GraficoCorrente() {
+export async function GraficoCorrente(props:GraficoProps) {
 
     
     const [dados, setDados] = useState(array); 
     const [type, setTypeView] = useState("LineChart");
+    
 
     async function buscaDados() {
     
@@ -297,22 +370,20 @@ export async function GraficoCorrente() {
     if(status){
         status=false
         buscaDados()
-    }
+    } 
     if (dados.length == 0) {
-        buscaDados();
+        buscaDados()
     }
 
     var lastHourUpdate = dados[dados.length-1]?.hora ? dados[dados.length-1]?.hora : null;
     var lastDayUpdate = dados[dados.length-1]?.data ? dados[dados.length-1]?.data : null;
-    let indexToArrData = 0;
+    let indexToArrData:any = 0;
 
 
     const title = [{type:"date", label:"Hour"}, "Amper"];
     const data = []
-    data[indexToArrData] = title;
-    indexToArrData = 1;
-    
-
+    ///data[indexToArrData] = title;
+    //indexToArrData = 1;
     if (lastHourUpdate) {
         let lastHour = null;
 
@@ -320,35 +391,34 @@ export async function GraficoCorrente() {
             if (dados[i]?.data == lastDayUpdate ) {
                 if(!lastHour){
                     lastHour = dados[i]?.hora
-                    data[indexToArrData] = [
-                        new Date(
-                            parseInt(dados[i]?.ano),
-                            parseInt(dados[i]?.mes),
-                            parseInt(dados[i]?.dia),
-                            parseInt(dados[i]?.hora),
-                            )
-                        , parseFloat(dados[i]?.corrente)]
-                    indexToArrData += 1;
+                    let date = new Date(
+                        parseInt(dados[i]?.ano),
+                        parseInt(dados[i]?.mes)-1,
+                        parseInt(dados[i]?.dia),
+                        parseInt(dados[i]?.hora)-3,
+                        parseInt(dados[i]?.tempo.slice(3,5)))
+                    data[indexToArrData] = [date, parseFloat(dados[i]?.corrente)]
+                    indexToArrData ++;
                 } else {
                     if(dados[i]?.hora == lastHour){
-                        data[indexToArrData] = [new Date(
+                        let date = new Date(
                             parseInt(dados[i]?.ano),
-                            parseInt(dados[i]?.mes),
+                            parseInt(dados[i]?.mes)-1,
                             parseInt(dados[i]?.dia),
-                            parseInt(dados[i]?.hora),
-                            parseInt(dados[i]?.tempo.slice(3,5)),
-                            ),parseFloat(dados[i]?.corrente)]
-                        indexToArrData += 1;
+                            parseInt(dados[i]?.hora)-3,
+                            parseInt(dados[i]?.tempo.slice(3,5)))
+                        data[indexToArrData] = [date, parseFloat(dados[i]?.corrente)]
+                        indexToArrData ++;
                     } else {
                         lastHour = dados[i]?.hora;
-                        data[indexToArrData] = [new Date(
+                        let date = new Date(
                             parseInt(dados[i]?.ano),
-                            parseInt(dados[i]?.mes),
+                            parseInt(dados[i]?.mes)-1,
                             parseInt(dados[i]?.dia),
-                            parseInt(dados[i]?.hora),
-                            parseInt(dados[i]?.tempo.slice(3,5)),
-                            ), parseFloat(dados[i]?.corrente)]
-                        indexToArrData += 1;
+                            parseInt(dados[i]?.hora)-3,
+                            parseInt(dados[i]?.tempo.slice(3,5)))
+                        data[indexToArrData] = [date, parseFloat(dados[i]?.corrente)]
+                        indexToArrData ++;
                     }
                 }
                 
@@ -357,6 +427,34 @@ export async function GraficoCorrente() {
 
         
     }   
+
+    const options:ApexOptions = {
+        chart: {
+            id: "basic-bar"
+        },
+        xaxis:{
+            type: "datetime"
+        },
+        noData: {
+            text: "Carregando...",
+                        align: "center",
+                        verticalAlign: "middle",
+        },
+        legend:{
+            show: true
+        },
+        dataLabels:{
+            enabled: false
+        }
+    }
+
+    const series:ApexAxisChartSeries = [
+        {
+            name: 'Amper',
+            data: data
+        }
+    ]
+
     //exibe o grafico na tela
     return (
         <div className="-z-10">
@@ -374,13 +472,17 @@ export async function GraficoCorrente() {
                 >
                     grafico de barras
                 </button>
+                <div className="bg-white">
                 <Chart
-                    chartType = {(type) ? type:"LineChart"}
-                    data={data}
+                    type="area"
+                    options={options}
+                    series={series}
                     width="100%"
                     height="400px"
-                    legendToggle
+    
                 />
+                </div>
+                
             </div>
         </div>
             
@@ -389,7 +491,7 @@ export async function GraficoCorrente() {
 
 }
 
-export async function GraficoTemperaturaPlaca() {
+export async function GraficoTemperaturaPlaca(props:GraficoProps) {
 
     
     const [dados, setDados] = useState(array); 
@@ -412,9 +514,9 @@ export async function GraficoTemperaturaPlaca() {
     if(status){
         status=false
         buscaDados()
-    }
+    } 
     if (dados.length == 0) {
-        buscaDados();
+        buscaDados()
     }
 
 
@@ -425,8 +527,6 @@ export async function GraficoTemperaturaPlaca() {
 
     const title = [{type:"date", label:"Hour"}, "°C"];
     const data = []
-    data[indexToArrData] = title;
-    indexToArrData = 1;
     
 
     if (lastHourUpdate) {
@@ -436,35 +536,34 @@ export async function GraficoTemperaturaPlaca() {
             if (dados[i]?.data == lastDayUpdate ) {
                 if(!lastHour){
                     lastHour = dados[i]?.hora
-                    data[indexToArrData] = [
-                        new Date(
-                            parseInt(dados[i]?.ano),
-                            parseInt(dados[i]?.mes),
-                            parseInt(dados[i]?.dia),
-                            parseInt(dados[i]?.hora),
-                            )
-                        , parseFloat(dados[i]?.tempB)]
-                    indexToArrData += 1;
+                    let date = new Date(
+                        parseInt(dados[i]?.ano),
+                        parseInt(dados[i]?.mes)-1,
+                        parseInt(dados[i]?.dia),
+                        parseInt(dados[i]?.hora)-3,
+                        parseInt(dados[i]?.tempo.slice(3,5)))
+                    data[indexToArrData] = [date, parseFloat(dados[i]?.tempB)]
+                    indexToArrData++;
                 } else {
                     if(dados[i]?.hora == lastHour){
-                        data[indexToArrData] = [new Date(
+                        let date = new Date(
                             parseInt(dados[i]?.ano),
-                            parseInt(dados[i]?.mes),
+                            parseInt(dados[i]?.mes)-1,
                             parseInt(dados[i]?.dia),
-                            parseInt(dados[i]?.hora),
-                            parseInt(dados[i]?.tempo.slice(3,5)),
-                            ),parseFloat(dados[i]?.tempB)]
-                        indexToArrData += 1;
+                            parseInt(dados[i]?.hora)-3,
+                            parseInt(dados[i]?.tempo.slice(3,5)))
+                        data[indexToArrData] = [date, parseFloat(dados[i]?.tempB)]
+                        indexToArrData++;
                     } else {
                         lastHour = dados[i]?.hora;
-                        data[indexToArrData] = [new Date(
+                        let date = new Date(
                             parseInt(dados[i]?.ano),
-                            parseInt(dados[i]?.mes),
+                            parseInt(dados[i]?.mes)-1,
                             parseInt(dados[i]?.dia),
-                            parseInt(dados[i]?.hora),
-                            parseInt(dados[i]?.tempo.slice(3,5)),
-                            ), parseFloat(dados[i]?.tempB)]
-                        indexToArrData += 1;
+                            parseInt(dados[i]?.hora)-3,
+                            parseInt(dados[i]?.tempo.slice(3,5)))
+                        data[indexToArrData] = [date, parseFloat(dados[i]?.tempB)]
+                        indexToArrData++
                     }
                 }
                 
@@ -474,7 +573,25 @@ export async function GraficoTemperaturaPlaca() {
         
     } 
 
-    
+    const options:ApexOptions = {
+        chart: {
+            id: "basic-bar"
+        },
+        xaxis:{
+            type: "datetime"
+        },
+        dataLabels:{
+            enabled:false
+        }
+    }
+
+    const series:ApexAxisChartSeries = [
+        {
+            name: 'Kwh',
+            data: data
+        }
+    ]
+
     //exibe o grafico na tela
     return (
         <div className="">
@@ -491,20 +608,23 @@ export async function GraficoTemperaturaPlaca() {
                 >
                     grafico de barras
                 </button>
-            <Chart
-                chartType={(type) ? type:"LineChart"}
-                data={data}
-                width="100%"
-                height="400px"
-                legendToggle
-            />
+                <div className="bg-white">
+                    <Chart
+                        type="area"
+                        options={options}
+                        series={series}
+                        width="100%"
+                        height="400px"
+        
+                    />
+                </div>
         </div>
         
     )
 
 }
 
-export async function GraficoTemperaturaAmbiente() {
+export async function GraficoTemperaturaAmbiente(props:GraficoProps) {
 
     
     const [dados, setDados] = useState(array); 
@@ -527,11 +647,10 @@ export async function GraficoTemperaturaAmbiente() {
     if(status){
         status=false
         buscaDados()
-    }
+    } 
     if (dados.length == 0) {
-        buscaDados();
+        buscaDados()
     }
-
 
     var lastHourUpdate = dados[dados.length-1]?.hora ? dados[dados.length-1]?.hora : null;
     var lastDayUpdate = dados[dados.length-1]?.data ? dados[dados.length-1]?.data : null;
@@ -540,8 +659,6 @@ export async function GraficoTemperaturaAmbiente() {
 
     const title = [{type:"date", label:"Hour"}, "°C"];
     const data = []
-    data[indexToArrData] = title;
-    indexToArrData = 1;
     
 
     if (lastHourUpdate) {
@@ -551,45 +668,61 @@ export async function GraficoTemperaturaAmbiente() {
             if (dados[i]?.data == lastDayUpdate ) {
                 if(!lastHour){
                     lastHour = dados[i]?.hora
-                    data[indexToArrData] = [
-                        new Date(
-                            parseInt(dados[i]?.ano),
-                            parseInt(dados[i]?.mes),
-                            parseInt(dados[i]?.dia),
-                            parseInt(dados[i]?.hora),
-                            )
-                        , parseFloat(dados[i]?.tempA)]
-                    indexToArrData += 1;
+                    let date = new Date(
+                        parseInt(dados[i]?.ano),
+                        parseInt(dados[i]?.mes)-1,
+                        parseInt(dados[i]?.dia),
+                        parseInt(dados[i]?.hora)-3,
+                        parseInt(dados[i]?.tempo.slice(3,5)))
+                    data[indexToArrData] = [date, parseFloat(dados[i]?.tempA)]
+                    indexToArrData++;
                 } else {
                     if(dados[i]?.hora == lastHour){
-                        data[indexToArrData] = [new Date(
+                        let date = new Date(
                             parseInt(dados[i]?.ano),
-                            parseInt(dados[i]?.mes),
+                            parseInt(dados[i]?.mes)-1,
                             parseInt(dados[i]?.dia),
-                            parseInt(dados[i]?.hora),
-                            parseInt(dados[i]?.tempo.slice(3,5)),
-                            ),parseFloat(dados[i]?.tempA)]
-                        indexToArrData += 1;
+                            parseInt(dados[i]?.hora)-3,
+                            parseInt(dados[i]?.tempo.slice(3,5)))
+                        data[indexToArrData] = [date, parseFloat(dados[i]?.tempA)]
+                        indexToArrData++;
                     } else {
                         lastHour = dados[i]?.hora;
-                        data[indexToArrData] = [new Date(
+                        let date = new Date(
                             parseInt(dados[i]?.ano),
-                            parseInt(dados[i]?.mes),
+                            parseInt(dados[i]?.mes)-1,
                             parseInt(dados[i]?.dia),
-                            parseInt(dados[i]?.hora),
-                            parseInt(dados[i]?.tempo.slice(3,5)),
-                            ), parseFloat(dados[i]?.tempA)]
-                        indexToArrData += 1;
-                    }
+                            parseInt(dados[i]?.hora)-3,
+                            parseInt(dados[i]?.tempo.slice(3,5)))
+                        data[indexToArrData] = [date, parseFloat(dados[i]?.tempA)]
+                        indexToArrData++;
                 }
                 
             }
         }
-
+    }
         
     } 
 
-    
+    const options:ApexOptions = {
+        chart: {
+            id: "basic-bar"
+        },
+        xaxis:{
+            type: "datetime"
+        },
+        dataLabels:{
+            enabled:false
+        }
+    }
+
+    const series:ApexAxisChartSeries = [
+        {
+            name: 'Kwh',
+            data: data
+        }
+    ]
+
     //exibe o grafico na tela
     return (
         <div className="">
@@ -606,20 +739,23 @@ export async function GraficoTemperaturaAmbiente() {
                 >
                     grafico de barras
                 </button>
-            <Chart
-                chartType={(type) ? type:"LineChart"}
-                data={data}
-                width="100%"
-                height="400px"
-                legendToggle
-            />
+                <div className="bg-white">
+                    <Chart
+                        type="area"
+                        options={options}
+                        series={series}
+                        width="100%"
+                        height="400px"
+        
+                    />
+                </div>
         </div>
         
     )
 
 }
 
-export async function GraficoPotencia() {
+export async function GraficoPotencia(props:GraficoProps) {
 
     
     const [dados, setDados] = useState(array); 
@@ -642,11 +778,10 @@ export async function GraficoPotencia() {
     if(status){
         status=false
         buscaDados()
-    }
+    } 
     if (dados.length == 0) {
-        buscaDados();
+        buscaDados()
     }
-
 
     var lastHourUpdate = dados[dados.length-1]?.hora ? dados[dados.length-1]?.hora : null;
     var lastDayUpdate = dados[dados.length-1]?.data ? dados[dados.length-1]?.data : null;
@@ -655,8 +790,6 @@ export async function GraficoPotencia() {
 
     const title = [{type:"date", label:"Hour"}, "W"];
     const data = []
-    data[indexToArrData] = title;
-    indexToArrData = 1;
     
 
     if (lastHourUpdate) {
@@ -666,35 +799,34 @@ export async function GraficoPotencia() {
             if (dados[i]?.data == lastDayUpdate ) {
                 if(!lastHour){
                     lastHour = dados[i]?.hora
-                    data[indexToArrData] = [
-                        new Date(
-                            parseInt(dados[i]?.ano),
-                            parseInt(dados[i]?.mes),
-                            parseInt(dados[i]?.dia),
-                            parseInt(dados[i]?.hora),
-                            )
-                        , parseFloat(dados[i]?.corrente)]
-                    indexToArrData += 1;
+                    let date = new Date(
+                        parseInt(dados[i]?.ano),
+                        parseInt(dados[i]?.mes)-1,
+                        parseInt(dados[i]?.dia),
+                        parseInt(dados[i]?.hora)-3,
+                        parseInt(dados[i]?.tempo.slice(3,5)))
+                    data[indexToArrData] = [date, parseFloat(dados[i]?.potencia)]
+                    indexToArrData++;
                 } else {
                     if(dados[i]?.hora == lastHour){
-                        data[indexToArrData] = [new Date(
+                        let date = new Date(
                             parseInt(dados[i]?.ano),
-                            parseInt(dados[i]?.mes),
+                            parseInt(dados[i]?.mes)-1,
                             parseInt(dados[i]?.dia),
-                            parseInt(dados[i]?.hora),
-                            parseInt(dados[i]?.tempo.slice(3,5)),
-                            ),parseFloat(dados[i]?.corrente)]
-                        indexToArrData += 1;
+                            parseInt(dados[i]?.hora)-3,
+                            parseInt(dados[i]?.tempo.slice(3,5)))
+                        data[indexToArrData] = [date, parseFloat(dados[i]?.potencia)]
+                        indexToArrData++;
                     } else {
                         lastHour = dados[i]?.hora;
-                        data[indexToArrData] = [new Date(
+                        let date = new Date(
                             parseInt(dados[i]?.ano),
-                            parseInt(dados[i]?.mes),
+                            parseInt(dados[i]?.mes)-1,
                             parseInt(dados[i]?.dia),
-                            parseInt(dados[i]?.hora),
-                            parseInt(dados[i]?.tempo.slice(3,5)),
-                            ), parseFloat(dados[i]?.corrente)]
-                        indexToArrData += 1;
+                            parseInt(dados[i]?.hora)-3,
+                            parseInt(dados[i]?.tempo.slice(3,5)))
+                        data[indexToArrData] = [date, parseFloat(dados[i]?.potencia)]
+                        indexToArrData++;
                     }
                 }
                 
@@ -703,6 +835,27 @@ export async function GraficoPotencia() {
 
         
     } 
+
+    const options = {
+        chart: {
+            id: "basic-bar"
+        },
+        xaxis:{
+            type: "datetime"
+        },
+        dataLabels:{
+            enabled:false
+        }
+    }
+
+    const series = [
+        {
+            name: 'Kwh',
+            data: data
+        }
+    ]
+    //verifica se o grafico é de linhas ou barras
+    //var typeChart:GoogleChartWrapperChartType = (type) ? type:"LineChart";
 
     
     //exibe o grafico na tela
@@ -721,13 +874,16 @@ export async function GraficoPotencia() {
                 >
                     grafico de barras
                 </button>
-            <Chart
-                chartType={(type) ? type:"LineChart"}
-                data={data}
-                width="100%"
-                height="400px"
-                legendToggle
-            />
+                <div className="bg-white">
+                    <Chart
+                        type="area"
+                        options={options}
+                        series={series}
+                        width="100%"
+                        height="400px"
+        
+                    />
+                </div>
         </div>
         
     )
