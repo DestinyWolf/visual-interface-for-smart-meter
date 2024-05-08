@@ -568,7 +568,7 @@ export async function GraficoTemperaturaPlaca(props:GraficoProps) {
 
     const series:ApexAxisChartSeries = [
         {
-            name: 'Kwh',
+            name: '°C',
             data: data
         }
     ]
