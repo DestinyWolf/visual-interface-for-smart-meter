@@ -87,9 +87,9 @@ export function DadosUltimaMedicao() {
     }
     
     var energia = 0.0; 
-    var hora = dados[dados.length -1]?.hora
+    var data = dados[dados.length -1]?.data
     for (let i = 0; i < dados.length; i++){
-        if(dados[i].hora == hora)
+        if(dados[i].data == data)
             energia += parseFloat(dados[i].energia);
 
 
@@ -114,7 +114,7 @@ export function DadosUltimaMedicao() {
                 </div>
 
                 <div className="ml-2 mr-2 border-4 p-6 font-bold text-center border-cyan-400 bg-white rounded-xl">
-                    {`Energia: ${energia.toFixed(2)} Kwh`}
+                    {`Energia Gerada: ${energia.toFixed(2)} Kwh`}
                 </div>
             </div>
             

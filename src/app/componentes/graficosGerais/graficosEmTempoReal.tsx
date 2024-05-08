@@ -89,7 +89,7 @@ export async function GraficoEnergiaGerada(props:GraficoProps) {
     
 
     //set graph type
-    const [type, setTypeView] = useState("LineChart");
+    const [type, setTypeView] = useState("Area");
     
     //fetch in API 
     async function buscaDados() {
@@ -185,20 +185,9 @@ export async function GraficoEnergiaGerada(props:GraficoProps) {
     //exibe o grafico na tela
     return (
         <div className="">
-            <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("LineChart")}
-                >
-                    grafico de linhas
-                </button>
-
-                <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("Bar")}
-                >
-                    grafico de barras
-                </button>
+            
                 <div className="bg-white">
+                    <h1>Energia Gerada</h1>
                     <Chart
                         type="area"
                         options={options}
@@ -290,10 +279,18 @@ export async function GraficoTensao(props:GraficoProps) {
             id: "area"
         },
         xaxis:{
-            type: "datetime"
+            type: "datetime",
+            title:{
+                text:"Horas"
+            }
         },
         dataLabels:{
             enabled:false
+        },
+        yaxis:{
+            title:{
+                text:"Voltagem"
+            }
         }
     }
 
@@ -307,19 +304,7 @@ export async function GraficoTensao(props:GraficoProps) {
     //exibe o grafico na tela
     return (
         <div className="">
-            <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("LineChart")}
-                >
-                    grafico de linhas
-                </button>
-
-                <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("Bar")}
-                >
-                    grafico de barras
-                </button>
+                <div className="items-center justify-center text-center font-semibold text-lg border-t-4 border-black mt-2">Grafico Tensão</div>
                 <div className="bg-white">
                 <Chart
                     type="area"
@@ -340,7 +325,7 @@ export async function GraficoCorrente(props:GraficoProps) {
 
     
     const [dados, setDados] = useState(array); 
-    const [type, setTypeView] = useState("LineChart");
+    const [type, setTypeView] = useState("area");
     
 
     async function buscaDados() {
@@ -423,7 +408,10 @@ export async function GraficoCorrente(props:GraficoProps) {
             id: "basic-bar"
         },
         xaxis:{
-            type: "datetime"
+            type: "datetime",
+            title:{
+                text:"Horas"
+            }, 
         },
         noData: {
             text: "Carregando...",
@@ -431,11 +419,18 @@ export async function GraficoCorrente(props:GraficoProps) {
                         verticalAlign: "middle",
         },
         legend:{
-            show: true
+            show: true,
+            position: "bottom"
         },
         dataLabels:{
-            enabled: false
-        }
+            enabled: (type == "area") ? false:true
+        },
+        yaxis:{
+            title:{
+                text:"Amperes"
+            }
+        },
+        
     }
 
     const series:ApexAxisChartSeries = [
@@ -449,22 +444,10 @@ export async function GraficoCorrente(props:GraficoProps) {
     return (
         <div className="-z-10">
             <div className="-z-10">
-                <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("LineChart")}
-                >
-                    grafico de linhas
-                </button>
-
-                <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("Bar")}
-                >
-                    grafico de barras
-                </button>
                 <div className="bg-white">
+                <div className="items-center justify-center text-center font-semibold text-lg">Grafico Corrente</div>
                 <Chart
-                    type="area"
+                    type={(type) == "area" ? "area":"bar"}
                     options={options}
                     series={series}
                     width="100%"
@@ -565,14 +548,22 @@ export async function GraficoTemperaturaPlaca(props:GraficoProps) {
 
     const options:ApexOptions = {
         chart: {
-            id: "basic-bar"
+            id: "basic-bar",
         },
         xaxis:{
-            type: "datetime"
+            type: "datetime",
+            title:{
+                text:"Horas"
+            }
         },
         dataLabels:{
             enabled:false
-        }
+        },
+        yaxis:{
+            title:{
+                text:"Temperatura"
+            }
+        }, 
     }
 
     const series:ApexAxisChartSeries = [
@@ -585,20 +576,8 @@ export async function GraficoTemperaturaPlaca(props:GraficoProps) {
     //exibe o grafico na tela
     return (
         <div className="">
-            <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("LineChart")}
-                >
-                    grafico de linhas
-                </button>
-
-                <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("Bar")}
-                >
-                    grafico de barras
-                </button>
                 <div className="bg-white">
+                <div className="items-center justify-center text-center font-semibold text-lg border-t-4 border-black">Temperatura da Placa</div>
                     <Chart
                         type="area"
                         options={options}
@@ -699,16 +678,24 @@ export async function GraficoTemperaturaAmbiente(props:GraficoProps) {
             id: "basic-bar"
         },
         xaxis:{
-            type: "datetime"
+            type: "datetime",
+            title:{
+                text:"Horas"
+            }
         },
         dataLabels:{
             enabled:false
+        },
+        yaxis:{
+            title:{
+                text:"Temperatura"
+            }
         }
     }
 
     const series:ApexAxisChartSeries = [
         {
-            name: 'Kwh',
+            name: '°C',
             data: data
         }
     ]
@@ -716,20 +703,8 @@ export async function GraficoTemperaturaAmbiente(props:GraficoProps) {
     //exibe o grafico na tela
     return (
         <div className="">
-            <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("LineChart")}
-                >
-                    grafico de linhas
-                </button>
-
-                <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("Bar")}
-                >
-                    grafico de barras
-                </button>
                 <div className="bg-white">
+                <div className="items-center justify-center text-center font-semibold text-lg">Temperatura do Ambiente</div>
                     <Chart
                         type="area"
                         options={options}
@@ -831,10 +806,18 @@ export async function GraficoPotencia(props:GraficoProps) {
             id: "basic-bar"
         },
         xaxis:{
-            type: "datetime"
+            type: "datetime",
+            title:{
+                text: "Horas"
+            }
         },
         dataLabels:{
             enabled:false
+        },
+        yaxis:{
+            title:{
+                text:"KiloWats"
+            }
         }
     }
 
@@ -851,20 +834,8 @@ export async function GraficoPotencia(props:GraficoProps) {
     //exibe o grafico na tela
     return (
         <div className="">
-            <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("LineChart")}
-                >
-                    grafico de linhas
-                </button>
-
-                <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("Bar")}
-                >
-                    grafico de barras
-                </button>
                 <div className="bg-white">
+                <div className="items-center justify-center text-center font-semibold text-lg">Grafico Potencia</div>
                     <Chart
                         type="area"
                         options={options}
@@ -883,7 +854,7 @@ export async function GraficoPotencia(props:GraficoProps) {
 
 export async function GraficoTensaoXCorrente(props:GraficoProps) {
     const [dados, setDados] = useState(array); 
-    const [type, setTypeView] = useState("LineChart");
+    const [type, setTypeView] = useState("juntos");
     
 
     async function buscaDados() {
@@ -970,7 +941,18 @@ export async function GraficoTensaoXCorrente(props:GraficoProps) {
             id: "basic-bar"
         },
         xaxis:{
-            type: "datetime"
+            type: "datetime",
+            title:{
+                text: "Horas",
+                
+            },
+            axisBorder:{
+                show:true,
+                color: "#00FFFF"
+            },
+            axisTicks: {
+                show:true
+            }
         },
         yaxis: [
             {
@@ -1051,28 +1033,46 @@ export async function GraficoTensaoXCorrente(props:GraficoProps) {
     return (
         <div className="-z-10">
             <div className="-z-10">
+                <div className="items-center justify-center text-center">
                 <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("LineChart")}
+                className="rounded-full bg-white m-2 p-3 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
+                onClick={() => setTypeView("juntos")}
                 >
-                    grafico de linhas
+                    JUNTOS
                 </button>
 
                 <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("Bar")}
+                className="rounded-full bg-white m-2 p-3 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
+                onClick={() => setTypeView("separados")}
                 >
-                    grafico de barras
+                    SEPARADOS
                 </button>
+
+                </div>
+                
                 <div className="bg-white">
-                <Chart
-                    type="area"
-                    options={options}
-                    series={series}
-                    width="100%"
-                    height="400px"
-    
-                />
+                
+                    {(type == "juntos") && (
+                        <>
+                        <div className="items-center justify-center text-center font-semibold text-lg">Tensão x Corrente</div>
+                        <Chart
+                        type="area"
+                        options={options}
+                        series={series}
+                        width="100%"
+                        height="400px"
+        
+                        />
+                        </>
+                        
+                    )}
+                    {(type == "separados") && (
+                        <>
+                            <GraficoCorrente/>
+                            <GraficoTensao/>
+                        </>
+                    )}
+                
                 </div>
                 
             </div>
