@@ -30,6 +30,8 @@ async function fetchFromApi(url:string)  {
             .then(res => { return res.json()})
             .then(data => {return data})
 }
+
+//variaveis para a valicação de alterações no banco de dados
 let previousData:any;
 let status:boolean = false
 
@@ -58,23 +60,8 @@ async function checkForUpdateAndFetchData() {
     } 
 }
 
-
-
+// Executar a função de verificação a cada 60 segundos
 setInterval(checkForUpdateAndFetchData, 60000);
-
-async function getDataAPI(hasRefresh:boolean, uri:string) {
-    const [data, setData] = useState(array)
-    if (status || hasRefresh) {
-        try{
-            const response = await fetchFromApi(uri);
-            setData(Object.values(data));
-        }  catch (err) {
-            console.log(err);
-        }
-    }
-    return data;
-}
-
 
 const array:DataObject[] = []; //array global para armazenar as informações iniciais dos graficos
 
@@ -127,7 +114,10 @@ export async function GraficoEnergiaGerada(props:GraficoProps) {
         buscaDados()
     }
 
+    //armazena a ultima hora que ouve atualização
     var lastHourUpdate = dados[dados.length-1]?.hora ? dados[dados.length-1]?.hora : null;
+
+    //armazena a ultima data que ouve atualização
     var lastDayUpdate = dados[dados.length-1]?.data ? dados[dados.length-1]?.data : null;
 
     //var to save currrent position on array data
@@ -161,7 +151,7 @@ export async function GraficoEnergiaGerada(props:GraficoProps) {
                             parseInt(dados[i]?.mes)-1,
                             parseInt(dados[i]?.dia),
                             parseInt(dados[i]?.hora)-3,
-                            parseInt(dados[i]?.tempo.slice(3,5)))
+                            parseInt(dados[i]?.tempo.slice(3,5))).getTime()
                         data[indexToArrData] = [date, sumValues]
 
                         //update last hour to new hour and repet the process
@@ -225,10 +215,12 @@ export async function GraficoEnergiaGerada(props:GraficoProps) {
 
 export async function GraficoTensao(props:GraficoProps) {
 
-    
+    //armazena os dados vindo da API
     const [dados, setDados] = useState(array); 
-    const [type, setTypeView] = useState("LineChart");
 
+    //setta o tipo de visualização dos graficos
+    const [type, setTypeView] = useState("LineChart");
+    //faz o fetch na api
     async function buscaDados() {
     
         try{
@@ -255,8 +247,6 @@ export async function GraficoTensao(props:GraficoProps) {
     var lastDayUpdate = dados[dados.length-1]?.data ? dados[dados.length-1]?.data : null;
     let indexToArrData = 0;
 
-
-    const title = [{type:"date", label:"Hour"}, "Volts"];
     const data = []
     
 
@@ -272,7 +262,7 @@ export async function GraficoTensao(props:GraficoProps) {
                         parseInt(dados[i]?.mes)-1,
                         parseInt(dados[i]?.dia),
                         parseInt(dados[i]?.hora)-3,
-                        parseInt(dados[i]?.tempo.slice(3,5)))
+                        parseInt(dados[i]?.tempo.slice(3,5))).getTime()
                     data[indexToArrData] = [date, parseFloat(dados[i]?.tensao)]
                     indexToArrData++;
                 } else {
@@ -285,7 +275,7 @@ export async function GraficoTensao(props:GraficoProps) {
                         parseInt(dados[i]?.mes)-1,
                         parseInt(dados[i]?.dia),
                         parseInt(dados[i]?.hora)-3,
-                        parseInt(dados[i]?.tempo.slice(3,5)))
+                        parseInt(dados[i]?.tempo.slice(3,5))).getTime()
                     data[indexToArrData] = [date, parseFloat(dados[i]?.tensao)]
                     indexToArrData++;
                     
@@ -396,7 +386,7 @@ export async function GraficoCorrente(props:GraficoProps) {
                         parseInt(dados[i]?.mes)-1,
                         parseInt(dados[i]?.dia),
                         parseInt(dados[i]?.hora)-3,
-                        parseInt(dados[i]?.tempo.slice(3,5)))
+                        parseInt(dados[i]?.tempo.slice(3,5))).getTime()
                     data[indexToArrData] = [date, parseFloat(dados[i]?.corrente)]
                     indexToArrData ++;
                 } else {
@@ -406,7 +396,7 @@ export async function GraficoCorrente(props:GraficoProps) {
                             parseInt(dados[i]?.mes)-1,
                             parseInt(dados[i]?.dia),
                             parseInt(dados[i]?.hora)-3,
-                            parseInt(dados[i]?.tempo.slice(3,5)))
+                            parseInt(dados[i]?.tempo.slice(3,5))).getTime()
                         data[indexToArrData] = [date, parseFloat(dados[i]?.corrente)]
                         indexToArrData ++;
                     } else {
@@ -416,7 +406,7 @@ export async function GraficoCorrente(props:GraficoProps) {
                             parseInt(dados[i]?.mes)-1,
                             parseInt(dados[i]?.dia),
                             parseInt(dados[i]?.hora)-3,
-                            parseInt(dados[i]?.tempo.slice(3,5)))
+                            parseInt(dados[i]?.tempo.slice(3,5))).getTime()
                         data[indexToArrData] = [date, parseFloat(dados[i]?.corrente)]
                         indexToArrData ++;
                     }
@@ -541,7 +531,7 @@ export async function GraficoTemperaturaPlaca(props:GraficoProps) {
                         parseInt(dados[i]?.mes)-1,
                         parseInt(dados[i]?.dia),
                         parseInt(dados[i]?.hora)-3,
-                        parseInt(dados[i]?.tempo.slice(3,5)))
+                        parseInt(dados[i]?.tempo.slice(3,5))).getTime()
                     data[indexToArrData] = [date, parseFloat(dados[i]?.tempB)]
                     indexToArrData++;
                 } else {
@@ -551,7 +541,7 @@ export async function GraficoTemperaturaPlaca(props:GraficoProps) {
                             parseInt(dados[i]?.mes)-1,
                             parseInt(dados[i]?.dia),
                             parseInt(dados[i]?.hora)-3,
-                            parseInt(dados[i]?.tempo.slice(3,5)))
+                            parseInt(dados[i]?.tempo.slice(3,5))).getTime()
                         data[indexToArrData] = [date, parseFloat(dados[i]?.tempB)]
                         indexToArrData++;
                     } else {
@@ -561,7 +551,7 @@ export async function GraficoTemperaturaPlaca(props:GraficoProps) {
                             parseInt(dados[i]?.mes)-1,
                             parseInt(dados[i]?.dia),
                             parseInt(dados[i]?.hora)-3,
-                            parseInt(dados[i]?.tempo.slice(3,5)))
+                            parseInt(dados[i]?.tempo.slice(3,5))).getTime()
                         data[indexToArrData] = [date, parseFloat(dados[i]?.tempB)]
                         indexToArrData++
                     }
@@ -673,7 +663,7 @@ export async function GraficoTemperaturaAmbiente(props:GraficoProps) {
                         parseInt(dados[i]?.mes)-1,
                         parseInt(dados[i]?.dia),
                         parseInt(dados[i]?.hora)-3,
-                        parseInt(dados[i]?.tempo.slice(3,5)))
+                        parseInt(dados[i]?.tempo.slice(3,5))).getTime()
                     data[indexToArrData] = [date, parseFloat(dados[i]?.tempA)]
                     indexToArrData++;
                 } else {
@@ -683,7 +673,7 @@ export async function GraficoTemperaturaAmbiente(props:GraficoProps) {
                             parseInt(dados[i]?.mes)-1,
                             parseInt(dados[i]?.dia),
                             parseInt(dados[i]?.hora)-3,
-                            parseInt(dados[i]?.tempo.slice(3,5)))
+                            parseInt(dados[i]?.tempo.slice(3,5))).getTime()
                         data[indexToArrData] = [date, parseFloat(dados[i]?.tempA)]
                         indexToArrData++;
                     } else {
@@ -693,7 +683,7 @@ export async function GraficoTemperaturaAmbiente(props:GraficoProps) {
                             parseInt(dados[i]?.mes)-1,
                             parseInt(dados[i]?.dia),
                             parseInt(dados[i]?.hora)-3,
-                            parseInt(dados[i]?.tempo.slice(3,5)))
+                            parseInt(dados[i]?.tempo.slice(3,5))).getTime()
                         data[indexToArrData] = [date, parseFloat(dados[i]?.tempA)]
                         indexToArrData++;
                 }
@@ -804,7 +794,7 @@ export async function GraficoPotencia(props:GraficoProps) {
                         parseInt(dados[i]?.mes)-1,
                         parseInt(dados[i]?.dia),
                         parseInt(dados[i]?.hora)-3,
-                        parseInt(dados[i]?.tempo.slice(3,5)))
+                        parseInt(dados[i]?.tempo.slice(3,5))).getTime()
                     data[indexToArrData] = [date, parseFloat(dados[i]?.potencia)]
                     indexToArrData++;
                 } else {
@@ -814,7 +804,7 @@ export async function GraficoPotencia(props:GraficoProps) {
                             parseInt(dados[i]?.mes)-1,
                             parseInt(dados[i]?.dia),
                             parseInt(dados[i]?.hora)-3,
-                            parseInt(dados[i]?.tempo.slice(3,5)))
+                            parseInt(dados[i]?.tempo.slice(3,5))).getTime()
                         data[indexToArrData] = [date, parseFloat(dados[i]?.potencia)]
                         indexToArrData++;
                     } else {
@@ -824,7 +814,7 @@ export async function GraficoPotencia(props:GraficoProps) {
                             parseInt(dados[i]?.mes)-1,
                             parseInt(dados[i]?.dia),
                             parseInt(dados[i]?.hora)-3,
-                            parseInt(dados[i]?.tempo.slice(3,5)))
+                            parseInt(dados[i]?.tempo.slice(3,5))).getTime()
                         data[indexToArrData] = [date, parseFloat(dados[i]?.potencia)]
                         indexToArrData++;
                     }
@@ -836,7 +826,7 @@ export async function GraficoPotencia(props:GraficoProps) {
         
     } 
 
-    const options = {
+    const options:ApexOptions = {
         chart: {
             id: "basic-bar"
         },
@@ -848,7 +838,7 @@ export async function GraficoPotencia(props:GraficoProps) {
         }
     }
 
-    const series = [
+    const series:ApexAxisChartSeries = [
         {
             name: 'Kwh',
             data: data
@@ -940,7 +930,7 @@ export async function GraficoTensaoXCorrente(props:GraficoProps) {
                         parseInt(dados[i]?.mes)-1,
                         parseInt(dados[i]?.dia),
                         parseInt(dados[i]?.hora)-3,
-                        parseInt(dados[i]?.tempo.slice(3,5)))
+                        parseInt(dados[i]?.tempo.slice(3,5))).getTime()
                     data1[indexToArrData] = [date, parseFloat(dados[i]?.corrente)]
                     data2[indexToArrData] = [date, parseFloat(dados[i]?.tensao)]
                     indexToArrData ++;
@@ -951,7 +941,7 @@ export async function GraficoTensaoXCorrente(props:GraficoProps) {
                             parseInt(dados[i]?.mes)-1,
                             parseInt(dados[i]?.dia),
                             parseInt(dados[i]?.hora)-3,
-                            parseInt(dados[i]?.tempo.slice(3,5)))
+                            parseInt(dados[i]?.tempo.slice(3,5))).getTime()
                             data1[indexToArrData] = [date, parseFloat(dados[i]?.corrente)]
                             data2[indexToArrData] = [date, parseFloat(dados[i]?.tensao)]
                         indexToArrData ++;
@@ -962,7 +952,7 @@ export async function GraficoTensaoXCorrente(props:GraficoProps) {
                             parseInt(dados[i]?.mes)-1,
                             parseInt(dados[i]?.dia),
                             parseInt(dados[i]?.hora)-3,
-                            parseInt(dados[i]?.tempo.slice(3,5)))
+                            parseInt(dados[i]?.tempo.slice(3,5))).getTime()
                             data1[indexToArrData] = [date, parseFloat(dados[i]?.corrente)]
                             data2[indexToArrData] = [date, parseFloat(dados[i]?.tensao)]
                         indexToArrData ++;
