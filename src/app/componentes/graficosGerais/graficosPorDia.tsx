@@ -1,4 +1,4 @@
-'use client'
+"use client"
 import { ApexOptions } from "apexcharts";
 //import {Chart, GoogleChartWrapperChartType} from "react-google-charts";
 import { useState } from "react";
@@ -72,6 +72,35 @@ interface GraficoProps{
     date:string,
 }
 
+var date = ''
+var hasValueInData:boolean = false;
+
+export function DataSelector() {
+    // Estado para armazenar a data selecionada
+    const [selectedDate, setSelectedDate] = useState<string>('');
+
+    // Manipulador de evento para a mudança na seleção da data
+    const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSelectedDate(event.target.value);
+        var dataArray:string[] = (event.target.value.split("-")) ?? '';
+        // Aqui você pode fazer o que quiser com a data selecionada, como enviar para a API, etc.
+        date = `${dataArray[2]}/${dataArray[1]}/${dataArray[0]}`;
+        hasValueInData = true;
+    };
+
+    return (
+        <div>
+        <label htmlFor="datePicker">Selecione uma data:</label>
+        <input
+            type="date"
+            id="datePicker"
+            name="datePicker"
+            value={selectedDate}
+            onChange={handleDateChange}
+        />
+        </div>
+    );
+}
 
 
 /**
@@ -82,7 +111,7 @@ interface GraficoProps{
  * @param props props for Graph component
  * @returns React Component
  */
-export async function GraficoEnergiaGerada(props:GraficoProps) {
+export async function GraficoEnergiaGerada() {
 
     
     //save data  after push API
@@ -96,7 +125,7 @@ export async function GraficoEnergiaGerada(props:GraficoProps) {
     async function buscaDados() {
     
         try{
-            fetch(`http://127.0.0.1:5000/data/day?data=${props.date}`)
+            fetch(`http://127.0.0.1:5000/data/day?data=${date}`)
             .then(res => { return res.json()})
             .then(data => {
                 const dataArray: DataObject[] = Object.values(data);
@@ -107,11 +136,11 @@ export async function GraficoEnergiaGerada(props:GraficoProps) {
             }
         }
         
-    if(status){
+    if(status && hasValueInData){
         status=false
         buscaDados()
     } 
-    if (dados.length == 0) {
+    if (dados.length == 0 && hasValueInData) {
         buscaDados()
     }
 
@@ -210,7 +239,7 @@ export async function GraficoEnergiaGerada(props:GraficoProps) {
     )
 }
 
-export async function GraficoTensao(props:GraficoProps) {
+export async function GraficoTensao() {
 
     //armazena os dados vindo da API
     const [dados, setDados] = useState(array); 
@@ -221,7 +250,7 @@ export async function GraficoTensao(props:GraficoProps) {
     async function buscaDados() {
     
         try{
-            fetch(`http://127.0.0.1:5000/data/day?data=${props.date}`)
+            fetch(`http://127.0.0.1:5000/data/day?data=${date}`)
             .then(res => { return res.json()})
             .then(data => {
                 const dataArray: DataObject[] = Object.values(data);
@@ -286,16 +315,24 @@ export async function GraficoTensao(props:GraficoProps) {
             id: "area"
         },
         xaxis:{
-            type: "datetime"
+            type: "datetime",
+            title:{
+                text:"Horas"
+            }
         },
         dataLabels:{
             enabled:false
+        },
+        yaxis:{
+            title:{
+                text:"Tensão"
+            }
         }
     }
 
     const series:ApexAxisChartSeries = [
         {
-            name: 'Volts',
+            name: 'V',
             data: data
         }
     ]
@@ -303,19 +340,7 @@ export async function GraficoTensao(props:GraficoProps) {
     //exibe o grafico na tela
     return (
         <div className="">
-            <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("LineChart")}
-                >
-                    grafico de linhas
-                </button>
-
-                <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("Bar")}
-                >
-                    grafico de barras
-                </button>
+                <div className="items-center justify-center text-center font-semibold text-lg border-t-4 border-black mt-2">Grafico Tensão</div>
                 <div className="bg-white">
                 <Chart
                     type="area"
@@ -332,7 +357,7 @@ export async function GraficoTensao(props:GraficoProps) {
 
 }
 
-export async function GraficoCorrente(props:GraficoProps) {
+export function GraficoCorrente() {
 
     
     const [dados, setDados] = useState(array); 
@@ -342,7 +367,7 @@ export async function GraficoCorrente(props:GraficoProps) {
     async function buscaDados() {
     
         try{
-            fetch(`http://127.0.0.1:5000/data/day?data=${props.date}`)
+            fetch(`http://127.0.0.1:5000/data/day?data=${date}`)
             .then(res => { return res.json()})
             .then(data => {
                 const dataArray: DataObject[] = Object.values(data);
@@ -353,35 +378,31 @@ export async function GraficoCorrente(props:GraficoProps) {
             }
         }
         
-    if(status){
+    if(status && hasValueInData){
         status=false
-        buscaDados()
-    } 
-    if (dados.length == 0) {
+        hasValueInData = false
         buscaDados()
     }
+    if (dados.length == 0 && hasValueInData) {
+        hasValueInData = false
+        buscaDados()
+    }
+    if (hasValueInData){
+        hasValueInData = false
+        buscaDados();
+    }
 
-    var lastHourUpdate = dados[dados.length-1]?.hora ? dados[dados.length-1]?.hora : null;
-    //var lastDayUpdate = dados[dados.length-1]?.data ? dados[dados.length-1]?.data : null;
-    let indexToArrData:any = 0;
+        var lastHourUpdate = dados[dados.length-1]?.hora ? dados[dados.length-1]?.hora : null;
+        //var lastDayUpdate = dados[dados.length-1]?.data ? dados[dados.length-1]?.data : null;
+        let indexToArrData:any = 0;
 
-    const data = []
-    if (lastHourUpdate) {
-        let lastHour = null;
+        const data = []
+        if (lastHourUpdate) {
+            let lastHour = null;
 
-        for(let i = 0; i<dados.length; i++) {
-            if(!lastHour){
-                lastHour = dados[i]?.hora
-                let date = new Date(
-                    parseInt(dados[i]?.ano),
-                    parseInt(dados[i]?.mes)-1,
-                    parseInt(dados[i]?.dia),
-                    parseInt(dados[i]?.hora)-3,
-                    parseInt(dados[i]?.tempo.slice(3,5))).getTime()
-                data[indexToArrData] = [date, parseFloat(dados[i]?.corrente)]
-                indexToArrData ++;
-            } else {
-                if(dados[i]?.hora == lastHour){
+            for(let i = 0; i<dados.length; i++) {
+                if(!lastHour){
+                    lastHour = dados[i]?.hora
                     let date = new Date(
                         parseInt(dados[i]?.ano),
                         parseInt(dados[i]?.mes)-1,
@@ -391,84 +412,93 @@ export async function GraficoCorrente(props:GraficoProps) {
                     data[indexToArrData] = [date, parseFloat(dados[i]?.corrente)]
                     indexToArrData ++;
                 } else {
-                    lastHour = dados[i]?.hora;
-                    let date = new Date(
-                        parseInt(dados[i]?.ano),
-                        parseInt(dados[i]?.mes)-1,
-                        parseInt(dados[i]?.dia),
-                        parseInt(dados[i]?.hora)-3,
-                        parseInt(dados[i]?.tempo.slice(3,5))).getTime()
-                    data[indexToArrData] = [date, parseFloat(dados[i]?.corrente)]
-                    indexToArrData ++;
+                    if(dados[i]?.hora == lastHour){
+                        let date = new Date(
+                            parseInt(dados[i]?.ano),
+                            parseInt(dados[i]?.mes)-1,
+                            parseInt(dados[i]?.dia),
+                            parseInt(dados[i]?.hora)-3,
+                            parseInt(dados[i]?.tempo.slice(3,5))).getTime()
+                        data[indexToArrData] = [date, parseFloat(dados[i]?.corrente)]
+                        indexToArrData ++;
+                    } else {
+                        lastHour = dados[i]?.hora;
+                        let date = new Date(
+                            parseInt(dados[i]?.ano),
+                            parseInt(dados[i]?.mes)-1,
+                            parseInt(dados[i]?.dia),
+                            parseInt(dados[i]?.hora)-3,
+                            parseInt(dados[i]?.tempo.slice(3,5))).getTime()
+                        data[indexToArrData] = [date, parseFloat(dados[i]?.corrente)]
+                        indexToArrData ++;
+                    }
                 }
             }
-        }
-    }   
+        }   
 
-    const options:ApexOptions = {
-        chart: {
-            id: "basic-bar"
-        },
-        xaxis:{
-            type: "datetime"
-        },
-        noData: {
-            text: "Carregando...",
-                        align: "center",
-                        verticalAlign: "middle",
-        },
-        legend:{
-            show: true
-        },
-        dataLabels:{
-            enabled: false
-        }
-    }
-
-    const series:ApexAxisChartSeries = [
-        {
-            name: 'Amper',
-            data: data
-        }
-    ]
-
-    //exibe o grafico na tela
-    return (
-        <div className="-z-10">
-            <div className="-z-10">
-                <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("LineChart")}
-                >
-                    grafico de linhas
-                </button>
-
-                <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("Bar")}
-                >
-                    grafico de barras
-                </button>
-                <div className="bg-white">
-                <Chart
-                    type="area"
-                    options={options}
-                    series={series}
-                    width="100%"
-                    height="400px"
-    
-                />
-                </div>
-                
-            </div>
-        </div>
+        const options:ApexOptions = {
+            chart: {
+                id: "basic-bar"
+            },
+            xaxis:{
+                type: "datetime",
+                title:{
+                    text:"Horas"
+                }, 
+            },
+            noData: {
+                text: "Carregando...",
+                            align: "center",
+                            verticalAlign: "middle",
+            },
+            legend:{
+                show: true,
+                position: "bottom"
+            },
+            dataLabels:{
+                enabled: (type == "area") ? false:true
+            },
+            yaxis:{
+                title:{
+                    text:"Coreente"
+                }
+            },
             
+        }
+    
+        const series:ApexAxisChartSeries = [
+            {
+                name: 'A',
+                data: data
+            }
+        ]
+    
+        //exibe o grafico na tela
+        return (
+            <div className="-z-10">
+                <div className="-z-10">
+                    <div className="bg-white">
+                    <div className="items-center justify-center text-center font-semibold text-lg">Grafico Corrente</div>
+                    <Chart
+                        type={(type) == "area" ? "area":"bar"}
+                        options={options}
+                        series={series}
+                        width="100%"
+                        height="400px"
         
-    )
+                    />
+                    </div>
+                    
+                </div>
+            </div>
+                
+            
+        )
+    
 
 }
 
-export async function GraficoTemperaturaPlaca(props:GraficoProps) {
+export async function GraficoTemperaturaPlaca() {
 
     
     const [dados, setDados] = useState(array); 
@@ -477,7 +507,7 @@ export async function GraficoTemperaturaPlaca(props:GraficoProps) {
     async function buscaDados() {
     
         try{
-            fetch(`http://127.0.0.1:5000/data/day?data=${props.date}`)
+            fetch(`http://127.0.0.1:5000/data/day?data=${date}`)
             .then(res => { return res.json()})
             .then(data => {
                 const dataArray: DataObject[] = Object.values(data);
@@ -537,19 +567,27 @@ export async function GraficoTemperaturaPlaca(props:GraficoProps) {
 
     const options:ApexOptions = {
         chart: {
-            id: "basic-bar"
+            id: "basic-bar",
         },
         xaxis:{
-            type: "datetime"
+            type: "datetime",
+            title:{
+                text:"Horas"
+            }
         },
         dataLabels:{
             enabled:false
-        }
+        },
+        yaxis:{
+            title:{
+                text:"Temperatura"
+            }
+        }, 
     }
 
     const series:ApexAxisChartSeries = [
         {
-            name: 'Kwh',
+            name: '°C',
             data: data
         }
     ]
@@ -557,20 +595,8 @@ export async function GraficoTemperaturaPlaca(props:GraficoProps) {
     //exibe o grafico na tela
     return (
         <div className="">
-            <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("LineChart")}
-                >
-                    grafico de linhas
-                </button>
-
-                <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("Bar")}
-                >
-                    grafico de barras
-                </button>
                 <div className="bg-white">
+                <div className="items-center justify-center text-center font-semibold text-lg border-t-4 border-black">Temperatura da Placa</div>
                     <Chart
                         type="area"
                         options={options}
@@ -586,7 +612,7 @@ export async function GraficoTemperaturaPlaca(props:GraficoProps) {
 
 }
 
-export async function GraficoTemperaturaAmbiente(props:GraficoProps) {
+export async function GraficoTemperaturaAmbiente() {
 
     
     const [dados, setDados] = useState(array); 
@@ -595,7 +621,7 @@ export async function GraficoTemperaturaAmbiente(props:GraficoProps) {
     async function buscaDados() {
     
         try{
-            fetch(`http://127.0.0.1:5000/data/day?data=${props.date}`)
+            fetch(`http://127.0.0.1:5000/data/day?data=${date}`)
             .then(res => { return res.json()})
             .then(data => {
                 const dataArray: DataObject[] = Object.values(data);
@@ -652,58 +678,54 @@ export async function GraficoTemperaturaAmbiente(props:GraficoProps) {
             }
         }
 
-    const options:ApexOptions = {
-        chart: {
-            id: "basic-bar"
-        },
-        xaxis:{
-            type: "datetime"
-        },
-        dataLabels:{
-            enabled:false
+        const options:ApexOptions = {
+            chart: {
+                id: "basic-bar"
+            },
+            xaxis:{
+                type: "datetime",
+                title:{
+                    text:"Horas"
+                }
+            },
+            dataLabels:{
+                enabled:false
+            },
+            yaxis:{
+                title:{
+                    text:"Temperatura"
+                }
+            }
         }
-    }
-
-    const series:ApexAxisChartSeries = [
-        {
-            name: 'Kwh',
-            data: data
-        }
-    ]
-
-    //exibe o grafico na tela
-    return (
-        <div className="">
-            <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("LineChart")}
-                >
-                    grafico de linhas
-                </button>
-
-                <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("Bar")}
-                >
-                    grafico de barras
-                </button>
-                <div className="bg-white">
-                    <Chart
-                        type="area"
-                        options={options}
-                        series={series}
-                        width="100%"
-                        height="400px"
-        
-                    />
-                </div>
-        </div>
-        
-    )
+    
+        const series:ApexAxisChartSeries = [
+            {
+                name: '°C',
+                data: data
+            }
+        ]
+    
+        //exibe o grafico na tela
+        return (
+            <div className="">
+                    <div className="bg-white">
+                    <div className="items-center justify-center text-center font-semibold text-lg">Temperatura do Ambiente</div>
+                        <Chart
+                            type="area"
+                            options={options}
+                            series={series}
+                            width="100%"
+                            height="400px"
+            
+                        />
+                    </div>
+            </div>
+            
+        )
 
 }
 
-export async function GraficoPotencia(props:GraficoProps) {
+export async function GraficoPotencia() {
 
     
     const [dados, setDados] = useState(array); 
@@ -712,7 +734,7 @@ export async function GraficoPotencia(props:GraficoProps) {
     async function buscaDados() {
     
         try{
-            fetch(`http://127.0.0.1:5000/data/day?data=${props.date}`)
+            fetch(`http://127.0.0.1:5000/data/day?data=${date}`)
             .then(res => { return res.json()})
             .then(data => {
                 const dataArray: DataObject[] = Object.values(data);
@@ -769,68 +791,66 @@ export async function GraficoPotencia(props:GraficoProps) {
             }
         }
 
-    const options:ApexOptions = {
-        chart: {
-            id: "basic-bar"
-        },
-        xaxis:{
-            type: "datetime"
-        },
-        dataLabels:{
-            enabled:false
+        const options:ApexOptions = {
+            chart: {
+                id: "basic-bar"
+            },
+            xaxis:{
+                type: "datetime",
+                title:{
+                    text: "Horas"
+                }
+            },
+            dataLabels:{
+                enabled:false
+            },
+            yaxis:{
+                title:{
+                    text:"KiloWats"
+                }
+            }
         }
-    }
-
-    const series:ApexAxisChartSeries = [
-        {
-            name: 'Kwh',
-            data: data
-        }
-    ]
-    //verifica se o grafico é de linhas ou barras
     
-    //exibe o grafico na tela
-    return (
-        <div className="">
-            <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("LineChart")}
-                >
-                    grafico de linhas
-                </button>
-
-                <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("Bar")}
-                >
-                    grafico de barras
-                </button>
-                <div className="bg-white">
-                    <Chart
-                        type="area"
-                        options={options}
-                        series={series}
-                        width="100%"
-                        height="400px"
+        const series:ApexAxisChartSeries = [
+            {
+                name: 'Kwh',
+                data: data
+            }
+        ]
+        //verifica se o grafico é de linhas ou barras
+        //var typeChart:GoogleChartWrapperChartType = (type) ? type:"LineChart";
+    
         
-                    />
-                </div>
-        </div>
-        
-    )
+        //exibe o grafico na tela
+        return (
+            <div className="">
+                    <div className="bg-white">
+                    <div className="items-center justify-center text-center font-semibold text-lg">Grafico Potencia</div>
+                        <Chart
+                            type="area"
+                            options={options}
+                            series={series}
+                            width="100%"
+                            height="400px"
+            
+                        />
+                    </div>
+            </div>
+            
+        )
 
 }
 
 
-export async function GraficoTensaoXCorrente(props:GraficoProps) {
+export async function GraficoTensaoXCorrente() {
     const [dados, setDados] = useState(array); 
-    const [type, setTypeView] = useState("LineChart");
+    const [type, setTypeView] = useState("juntos");
     
 
     async function buscaDados() {
     
         try{
-            fetch(`http://127.0.0.1:5000/data/day?data=${props.date}`)
+            fetch(`http://127.0.0.1:5000/data/day?data=${date}`)
             .then(res => { return res.json()})
             .then(data => {
                 const dataArray: DataObject[] = Object.values(data);
@@ -894,7 +914,18 @@ export async function GraficoTensaoXCorrente(props:GraficoProps) {
             id: "basic-bar"
         },
         xaxis:{
-            type: "datetime"
+            type: "datetime",
+            title:{
+                text: "Horas",
+                
+            },
+            axisBorder:{
+                show:true,
+                color: "#00FFFF"
+            },
+            axisTicks: {
+                show:true
+            }
         },
         yaxis: [
             {
@@ -975,28 +1006,46 @@ export async function GraficoTensaoXCorrente(props:GraficoProps) {
     return (
         <div className="-z-10">
             <div className="-z-10">
+                <div className="items-center justify-center text-center">
                 <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("LineChart")}
+                className="rounded-full bg-white m-2 p-3 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
+                onClick={() => setTypeView("juntos")}
                 >
-                    grafico de linhas
+                    JUNTOS
                 </button>
 
                 <button 
-                className="rounded-full bg-white m-2 p-2 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
-                onClick={() => setTypeView("Bar")}
+                className="rounded-full bg-white m-2 p-3 font-semibold hover:bg-slate-400 hover:border-blue-500 focus:bg-emerald-800 transition"
+                onClick={() => setTypeView("separados")}
                 >
-                    grafico de barras
+                    SEPARADOS
                 </button>
+
+                </div>
+                
                 <div className="bg-white">
-                <Chart
-                    type="area"
-                    options={options}
-                    series={series}
-                    width="100%"
-                    height="400px"
-    
-                />
+                
+                    {(type == "juntos") && (
+                        <>
+                        <div className="items-center justify-center text-center font-semibold text-lg">Tensão x Corrente</div>
+                        <Chart
+                        type="area"
+                        options={options}
+                        series={series}
+                        width="100%"
+                        height="400px"
+        
+                        />
+                        </>
+                        
+                    )}
+                    {(type == "separados") && (
+                        <>
+                            <GraficoCorrente/>
+                            <GraficoTensao/>
+                        </>
+                    )}
+                
                 </div>
                 
             </div>

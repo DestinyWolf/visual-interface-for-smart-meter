@@ -28,8 +28,7 @@ export const Sidebar = ({ active, setPressButton }:{active:any, setPressButton:a
         <SidebarItem Icon={FaChartBar} Text="Graficos Temperatura" href='/graficosPaginas/temperaturas'/>
         <SidebarItem Icon={FaChartColumn} Text="potencia" href='/graficosPaginas/potencia'/>
         <SidebarItem Icon={FaChartArea} Text="corrente x tensao" href='/graficosPaginas/tensaoECorrente'/>
-        <SidebarItem Icon={FaClock} Text="Graficos por hora" href='/'/>
-        <SidebarItem Icon={FaRegCalendarAlt} Text="Graficos por dia" href='/'/>
+        <SidebarItem Icon={FaRegCalendarAlt} Text="Graficos por dia" href='/graficosPorTempo/porDia'/>
         <SidebarItem Icon={FaRegCalendarAlt} Text="Graficos por mes" href='/'/>
         <SidebarItem Icon={FaRegCalendarAlt} Text="Graficos por ano" href='/'/>
       </Content>

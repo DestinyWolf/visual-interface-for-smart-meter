@@ -65,11 +65,14 @@ setInterval(checkForUpdateAndFetchData, 60000);
 
 const array:DataObject[] = []; //array global para armazenar as informações iniciais dos graficos
 
-
 //props of graphs
 interface GraficoProps{
     hasRefresh?:boolean,
 }
+
+
+
+
 
 
 
@@ -289,14 +292,14 @@ export async function GraficoTensao(props:GraficoProps) {
         },
         yaxis:{
             title:{
-                text:"Voltagem"
+                text:"Tensão"
             }
         }
     }
 
     const series:ApexAxisChartSeries = [
         {
-            name: 'Volts',
+            name: 'V',
             data: data
         }
     ]
@@ -427,7 +430,7 @@ export async function GraficoCorrente(props:GraficoProps) {
         },
         yaxis:{
             title:{
-                text:"Amperes"
+                text:"Coreente"
             }
         },
         
@@ -435,7 +438,7 @@ export async function GraficoCorrente(props:GraficoProps) {
 
     const series:ApexAxisChartSeries = [
         {
-            name: 'Amper',
+            name: 'A',
             data: data
         }
     ]

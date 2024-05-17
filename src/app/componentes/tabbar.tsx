@@ -102,7 +102,7 @@ export function DadosUltimaMedicao() {
             <div className="text-white font-semibold mt-auto mb-4">{`Dia ${dados[dados.length - 1]?.data}`}</div>
             <div className="flex mb-3 justify-center items-center">
                 <div className="ml-2 mr-2 border-4 p-6 font-bold text-center border-emerald-700 bg-white rounded-xl">
-                    {`Potência: ${(dados[dados.length-1]?.potencia) ? dados[dados.length-1]?.potencia:0} Kw`}
+                    {`Potência: ${(dados[dados.length-1]?.potencia) ? dados[dados.length-1]?.potencia:0} kW`}
                 </div>
 
                 <div className="ml-2 mr-2 border-4 p-6 font-bold text-center border-orange-400 bg-white rounded-xl">
@@ -114,7 +114,7 @@ export function DadosUltimaMedicao() {
                 </div>
 
                 <div className="ml-2 mr-2 border-4 p-6 font-bold text-center border-cyan-400 bg-white rounded-xl">
-                    {`Energia Gerada: ${energia.toFixed(2)} Kwh`}
+                    {`Geração do dia: ${energia.toFixed(2)} kWh`}
                 </div>
             </div>
             

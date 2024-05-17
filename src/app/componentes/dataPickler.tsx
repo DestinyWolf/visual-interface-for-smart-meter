@@ -8,8 +8,9 @@ const DateSelector: React.FC = () => {
   // Manipulador de evento para a mudança na seleção da data
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedDate(event.target.value);
+    var dataArray:string[] = (event.target.value.split("-")) ?? '';
     // Aqui você pode fazer o que quiser com a data selecionada, como enviar para a API, etc.
-    console.log('Data selecionada:', event.target.value);
+    console.log(`Data selecionada: ${dataArray[2]}/${dataArray[1]}/${dataArray[0]}`);
   };
 
   return (

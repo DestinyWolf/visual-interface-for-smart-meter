@@ -2,6 +2,7 @@
 import { Suspense} from "react";
 import {GraficoCorrente} from "./componentes/graficosGerais/graficosEmTempoReal";
 import {DadosUltimaMedicao} from "./componentes/tabbar";
+import DateSelector from "./componentes/dataPickler";
 
 
 
@@ -15,6 +16,7 @@ export default function Home() {
           <Suspense fallback="carregando...">
             <GraficoCorrente />
           </Suspense>
+          <DateSelector/>
         </div>
         
         
