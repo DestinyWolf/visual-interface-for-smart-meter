@@ -1,10 +1,9 @@
 "use client"
 import { ApexOptions } from "apexcharts";
-//import {Chart, GoogleChartWrapperChartType} from "react-google-charts";
 import { useState } from "react";
 import Chart from "react-apexcharts";
 import { FaSearch } from "react-icons/fa";
-import {GraficoSeparadoArea} from "../graficosUnitsComponents";
+import { useRouter } from "next/navigation";
 
 
 //link for push data from API 
@@ -79,6 +78,7 @@ var hasValueInData:boolean = false;
 
 export function DataSelector() {
     // Estado para armazenar a data selecionada
+    const router = useRouter();
     const [selectedDate, setSelectedDate] = useState<string>('');
 
     // Manipulador de evento para a mudança na seleção da data
@@ -102,7 +102,7 @@ export function DataSelector() {
             className=" py-1 text-center rounded-lg"
         />
         <div>
-            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg ml-2" onClick={() => {status=true}}>
+            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg ml-2" onClick={() => {router.refresh();}}>
                 <FaSearch/>
             </button>
         </div>
@@ -348,13 +348,16 @@ export async function GraficoTensao() {
     //exibe o grafico na tela
     return (
         <div className="">
-                <GraficoSeparadoArea 
-                    type={type}
-                    dataGraph={data}
-                    unit="V"
-                    name="Grafico Tensão"
-                    legend="Tensão"
+                <div className="items-center justify-center text-center font-semibold text-lg border-t-4 border-black mt-2">Grafico Tensão</div>
+                <div className="bg-white">
+                <Chart
+                    type="area"
+                    options={options}
+                    series={series}
+                    width="100%"
+                    height="400px"
                 />
+                </div>
         </div>
         
     )
@@ -364,10 +367,9 @@ export async function GraficoTensao() {
 export function GraficoCorrente() {
 
     
-    //const [dados, setDados] = useState(array); 
-    //const [type, setTypeView] = useState("LineChart");
-    var dados = array;
-    var type = "area"
+    const [dados, setDados] = useState(array); 
+    const [type, setTypeView] = useState("area");
+    
 
     async function buscaDados() {
     
@@ -376,7 +378,7 @@ export function GraficoCorrente() {
             .then(res => { return res.json()})
             .then(data => {
                 const dataArray: DataObject[] = Object.values(data);
-                dados = dataArray;
+                setDados(dataArray);
             })
         } catch(err) {
             console.log(err)
@@ -439,18 +441,62 @@ export function GraficoCorrente() {
                     }
                 }
             }
-        }   
+        }  
+        
+        const options:ApexOptions = {
+            chart: {
+                id: "basic-bar"
+            },
+            xaxis:{
+                type: "datetime",
+                title:{
+                    text:"Horas"
+                }, 
+            },
+            noData: {
+                text: "Carregando...",
+                            align: "center",
+                            verticalAlign: "middle",
+            },
+            legend:{
+                show: true,
+                position: "bottom"
+            },
+            dataLabels:{
+                enabled: (type == "area") ? false:true
+            },
+            yaxis:{
+                title:{
+                    text:"Corrente"
+                }
+            },
+            
+        }
+    
+        const series:ApexAxisChartSeries = [
+            {
+                name: 'A',
+                data: data
+            }
+        ]
     
         //exibe o grafico na tela
         return (
             <div className="-z-10">
-                <GraficoSeparadoArea 
-                    type={type}
-                    dataGraph={data}
-                    unit="A"
-                    name="Grafico Corrente"
-                    legend="Corrente"
-                />
+                <div className="-z-10">
+                    <div className="bg-white">
+                    <div className="items-center justify-center text-center font-semibold text-lg">Grafico Corrente</div>
+                    <Chart
+                        type={(type) == "area" ? "area":"bar"}
+                        options={options}
+                        series={series}
+                        width="100%"
+                        height="400px"
+        
+                    />
+                    </div>
+                    
+                </div>
             </div>
                 
             
