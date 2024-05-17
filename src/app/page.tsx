@@ -16,7 +16,6 @@ export default function Home() {
           <Suspense fallback="carregando...">
             <GraficoCorrente />
           </Suspense>
-          <DateSelector/>
         </div>
         
         
