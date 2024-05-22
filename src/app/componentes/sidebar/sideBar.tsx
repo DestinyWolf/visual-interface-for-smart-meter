@@ -29,7 +29,7 @@ export const Sidebar = ({ active, setPressButton }:{active:any, setPressButton:a
         <SidebarItem Icon={FaChartColumn} Text="potencia" href='/graficosPaginas/potencia'/>
         <SidebarItem Icon={FaChartArea} Text="corrente x tensao" href='/graficosPaginas/tensaoECorrente'/>
         <SidebarItem Icon={FaRegCalendarAlt} Text="Graficos por dia" href='/graficosPorTempo/porDia'/>
-        <SidebarItem Icon={FaRegCalendarAlt} Text="Graficos por mes" href='/'/>
+        <SidebarItem Icon={FaRegCalendarAlt} Text="Graficos por mes" href='/graficosPorTempo/porMes'/>
         <SidebarItem Icon={FaRegCalendarAlt} Text="Graficos por ano" href='/'/>
       </Content>
     </Container>
